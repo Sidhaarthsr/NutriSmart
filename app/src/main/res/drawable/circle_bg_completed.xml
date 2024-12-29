@@ -1,0 +1,14 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Circle Background -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#00FF00" /> <!-- Green color -->
+        </shape>
+    </item>
+    <!-- Tick Icon -->
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/ic_tick" /> <!-- Tick icon -->
+    </item>
+</layer-list>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/bioDataFragment">
+
+    <fragment
+        android:id="@+id/bioDataFragment"
+        android:name="com.sidcodes.nutrismart.fragments.BioDataFragment"
+        android:label="Bio Data" >
+        <action
+            android:id="@+id/action_bioData_to_nutritionalRequirements"
+            app:destination="@id/nutritionalRequirementsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nutritionalRequirementsFragment"
+        android:name="com.sidcodes.nutrismart.fragments.NutritionalRequirementsFragment"
+        android:label="Nutritional Requirements" >
+        <action
+            android:id="@+id/action_nutritionalRequirements_to_vendors"
+            app:destination="@id/vendorsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/vendorsFragment"
+        android:name="com.sidcodes.nutrismart.fragments.VendorsFragment"
+        android:label="Vendors" >
+        <action
+            android:id="@+id/action_vendors_to_shoppingFrequency"
+            app:destination="@id/shoppingFrequencyFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/shoppingFrequencyFragment"
+        android:name="com.sidcodes.nutrismart.fragments.ShoppingFrequencyFragment"
+        android:label="Shopping Frequency" >
+        <action
+            android:id="@+id/action_shoppingFrequency_to_setupComplete"
+            app:destination="@id/setupCompleteFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/setupCompleteFragment"
+        android:name="com.sidcodes.nutrismart.fragments.SetupCompleteFragment"
+        android:label="Setup Complete" />
+</navigation>
