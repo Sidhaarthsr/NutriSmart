@@ -11,13 +11,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        PreferenceManager preferenceManager = new PreferenceManager(this);
-//
-//        if (!preferenceManager.isSetupComplete()) {
-//            startActivity(new Intent(MainActivity.this, SignupActivity.class));
-//            finish();
-//            return;
-//        }
+
 
         setContentView(R.layout.activity_main);
 

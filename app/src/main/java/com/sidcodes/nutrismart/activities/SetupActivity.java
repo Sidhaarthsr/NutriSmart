@@ -1,15 +1,9 @@
 package com.sidcodes.nutrismart.activities;
 
-//import android.content.Intent;
-import android.content.Context;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-//import androidx.fragment.app.Fragment;
-//import androidx.navigation.NavController;
-//import androidx.navigation.fragment.NavHostFragment;
-//import androidx.navigation.ui.NavigationUI;
 import com.sidcodes.nutrismart.R;
 import com.sidcodes.nutrismart.model.StepData;
 import com.sidcodes.nutrismart.utils.SetupVerticalStepperAdapter;
@@ -17,11 +11,6 @@ import com.sidcodes.nutrismart.utils.SetupVerticalStepperAdapter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-//import com.sidcodes.nutrismart.fragments.BioDataFragment;
-//import com.sidcodes.nutrismart.fragments.NutritionalRequirementsFragment;
-//import com.sidcodes.nutrismart.fragments.ShoppingFrequencyFragment;
-//import com.sidcodes.nutrismart.fragments.VendorsFragment;
-//import com.sidcodes.nutrismart.utils.PreferenceManager;
 
 public class SetupActivity extends AppCompatActivity {
     @Override
@@ -38,22 +27,8 @@ public class SetupActivity extends AppCompatActivity {
         // Setup RecyclerView
         RecyclerView recyclerView = findViewById(R.id.stepper_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        SetupVerticalStepperAdapter adapter = new SetupVerticalStepperAdapter(steps, recyclerView);
+        SetupVerticalStepperAdapter adapter = new SetupVerticalStepperAdapter(steps, recyclerView, this);
         recyclerView.setAdapter(adapter);
-
-
-//        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-//                .findFragmentById(R.id.nav_host_fragment);
-//        NavController navController = navHostFragment.getNavController();
-//        NavigationUI.setupActionBarWithNavController(this, navController);
-//
-//        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-//            if (destination.getId() == R.id.setupCompleteFragment) {
-//                new PreferenceManager(this).setSetupComplete(true);
-//                startActivity(new Intent(SetupActivity.this, MainActivity.class));
-//                finish();
-//            }
-//        });
     }
 
 //    @Override
