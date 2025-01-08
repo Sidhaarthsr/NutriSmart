@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.sidcodes.nutrismart" />
+                  <option name="mobileSdkAppId" value="1:246957418065:android:6cff81c63c6d869f173a70" />
+                  <option name="projectId" value="nutrikart-651cb" />
+                  <option name="projectNumber" value="246957418065" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "246957418065",
+    "firebase_url": "https://nutrikart-651cb-default-rtdb.firebaseio.com",
+    "project_id": "nutrikart-651cb",
+    "storage_bucket": "nutrikart-651cb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:246957418065:android:6cff81c63c6d869f173a70",
+        "android_client_info": {
+          "package_name": "com.sidcodes.nutrismart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "246957418065-7g23vgm6qqjlg41n6j1eq04m3tqakoqp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sidcodes.nutrismart",
+            "certificate_hash": "f65b0371716159543ecca7806af3a19edfd6573a"
+          }
+        },
+        {
+          "client_id": "246957418065-tmk8d7vgikba3mbos3cb251p7jd2d2d0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaAL-2RckAuIXlrIs5ZCba1UkWgLBEkso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "246957418065-tmk8d7vgikba3mbos3cb251p7jd2d2d0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

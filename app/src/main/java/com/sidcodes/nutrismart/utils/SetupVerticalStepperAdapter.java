@@ -2,7 +2,6 @@ package com.sidcodes.nutrismart.utils;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sidcodes.nutrismart.R;
 import com.sidcodes.nutrismart.model.StepData;
-
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,12 +63,20 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
             inputField.setText(inputsForStep.getOrDefault(i, ""));
 
             final int inputIndex = i;
+            inputField.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    holder.continueButton.requestFocus();
+                    animateButton(holder.continueButton);
+                    return true;
+                }
+                return false;
+            });
+
             inputField.addTextChangedListener(new SimpleTextWatcher() {
                 @Override
                 public void onTextChanged(String text) {
                     inputsForStep.put(inputIndex, text);
                     stepInputs.put(position, inputsForStep);
-                    validateTick(holder, position);
                 }
             });
 
@@ -79,16 +84,18 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
         }
 
         if (position == currentStep) {
-            holder.cardView.setCardBackgroundColor(Color.WHITE);
+            holder.cardView.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            holder.backgroundImage.setVisibility(View.GONE);
             holder.inputContainer.setVisibility(View.VISIBLE);
             holder.continueButton.setVisibility(View.VISIBLE);
+            holder.continueButton.setText(position == steps.size() - 1 ? "Finish" : "Continue");
             holder.iconCompleted.setVisibility(View.GONE);
             holder.editIcon.setVisibility(View.GONE);
-            holder.continueButton.setText(position == steps.size() - 1 ? "Finish" : "Continue");
             animateCard(holder.cardView, 1.05f);
-            animateButton(holder.continueButton);
         } else {
-            holder.cardView.setCardBackgroundColor(context.getResources().getColor(R.color.light_purple));
+            holder.backgroundImage.setImageResource(stepData.getBackgroundResource());
+            holder.backgroundImage.setVisibility(View.VISIBLE);
+            holder.cardView.getLayoutParams().height = 1000; // Set a standard height for collapsed cards
             holder.inputContainer.setVisibility(View.GONE);
             holder.continueButton.setVisibility(View.GONE);
             animateCard(holder.cardView, 1.0f);
@@ -106,7 +113,7 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
                 if (position < steps.size() - 1) {
                     updateActiveStep(position + 1);
                 } else {
-                    Toast.makeText(context, "All steps completed!", Toast.LENGTH_SHORT).show();
+                    updateActiveStep(-1); // Collapse the last card
                 }
             } else {
                 Toast.makeText(context, "Please complete all fields before continuing.", Toast.LENGTH_SHORT).show();
@@ -117,20 +124,18 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
     }
 
     private boolean isStepCompleted(Map<Integer, String> inputsForStep) {
+        // Check if the step has any inputs, if none, it's not completed
+        if (inputsForStep.isEmpty()) {
+            return false;
+        }
+
+        // Check if all inputs for the step are filled
         for (String value : inputsForStep.values()) {
             if (value == null || value.trim().isEmpty()) {
                 return false;
             }
         }
         return true;
-    }
-
-    private void validateTick(StepperViewHolder holder, int position) {
-        if (isStepCompleted(stepInputs.getOrDefault(position, new HashMap<>()))) {
-            holder.iconCompleted.setVisibility(View.VISIBLE);
-        } else {
-            holder.iconCompleted.setVisibility(View.GONE);
-        }
     }
 
     private void updateActiveStep(int newStep) {
@@ -154,10 +159,13 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
         scaleY.start();
     }
 
-    private void animateButton(Button button) {
-        ObjectAnimator alpha = ObjectAnimator.ofFloat(button, "alpha", 0.5f, 1f);
-        alpha.setDuration(300);
-        alpha.start();
+    private void animateButton(View button) {
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(button, "scaleX", 1.2f, 1.0f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(button, "scaleY", 1.2f, 1.0f);
+        scaleX.setDuration(200);
+        scaleY.setDuration(200);
+        scaleX.start();
+        scaleY.start();
     }
 
     @Override
@@ -167,21 +175,20 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
 
     static class StepperViewHolder extends RecyclerView.ViewHolder {
         TextView stepTitle;
-        ImageView logoPlaceholder;
         LinearLayout inputContainer;
         Button continueButton;
-        ImageView iconCompleted, editIcon;
+        ImageView iconCompleted, editIcon, backgroundImage;
         CardView cardView;
 
         public StepperViewHolder(@NonNull View itemView) {
             super(itemView);
-            logoPlaceholder = itemView.findViewById(R.id.logo_placeholder);
             stepTitle = itemView.findViewById(R.id.step_title);
             inputContainer = itemView.findViewById(R.id.input_container);
             continueButton = itemView.findViewById(R.id.btn_continue);
             iconCompleted = itemView.findViewById(R.id.icon_completed);
             editIcon = itemView.findViewById(R.id.icon_edit);
             cardView = (CardView) itemView;
+            backgroundImage = itemView.findViewById(R.id.background_image);
         }
     }
 }

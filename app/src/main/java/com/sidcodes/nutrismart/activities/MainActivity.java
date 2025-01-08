@@ -15,8 +15,8 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        findViewById(R.id.signupButton).setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, SetupActivity.class));
+        findViewById(R.id.startButton).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
         });
     }
 }
