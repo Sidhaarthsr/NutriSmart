@@ -1,23 +1,26 @@
 package com.sidcodes.nutrismart.utils;
 
+import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sidcodes.nutrismart.R;
 import com.sidcodes.nutrismart.model.StepData;
-
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,12 +30,14 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
 
     private final List<StepData> steps;
     private final RecyclerView recyclerView;
-    private int currentStep = 0; // Tracks the active step
-    private final Map<Integer, Map<Integer, String>> stepInputs = new HashMap<>(); // Step -> Input index -> Value
+    private final Context context;
+    private int currentStep = 0;
+    private final Map<Integer, Map<Integer, String>> stepInputs = new HashMap<>();
 
-    public SetupVerticalStepperAdapter(List<StepData> steps, RecyclerView recyclerView) {
+    public SetupVerticalStepperAdapter(List<StepData> steps, RecyclerView recyclerView, Context context) {
         this.steps = steps;
         this.recyclerView = recyclerView;
+        this.context = context;
     }
 
     @NonNull
@@ -47,20 +52,26 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
         StepData stepData = steps.get(position);
         holder.stepTitle.setText(stepData.getTitle());
 
-        // Clear the input container
         holder.inputContainer.removeAllViews();
 
-        // Dynamically create input fields based on stepData
         Map<Integer, String> inputsForStep = stepInputs.getOrDefault(position, new HashMap<>());
         for (int i = 0; i < stepData.getInputTitles().size(); i++) {
             EditText inputField = new EditText(holder.itemView.getContext());
             inputField.setHint(stepData.getInputTitles().get(i));
-
-            // Restore previously entered value (if available)
+            inputField.setImeOptions(i == stepData.getInputTitles().size() - 1 ? EditorInfo.IME_ACTION_DONE : EditorInfo.IME_ACTION_NEXT);
+            inputField.setSingleLine(true);
             inputField.setText(inputsForStep.getOrDefault(i, ""));
 
-            // Listen for text changes
             final int inputIndex = i;
+            inputField.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    holder.continueButton.requestFocus();
+                    animateButton(holder.continueButton);
+                    return true;
+                }
+                return false;
+            });
+
             inputField.addTextChangedListener(new SimpleTextWatcher() {
                 @Override
                 public void onTextChanged(String text) {
@@ -69,80 +80,92 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
                 }
             });
 
-            // Enable/disable based on current step
-            inputField.setEnabled(position == currentStep);
-
-            // Focus listener to update active section when clicking an input field
-            inputField.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus && currentStep != position) {
-                    Log.d("FocusListener", "Switching focus to position: " + position);
-                    updateActiveStep(position);
-                }
-            });
-
             holder.inputContainer.addView(inputField);
         }
 
-        // Show/Hide buttons based on the step index
-        holder.btnPrevious.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
-        holder.btnNext.setText(position == steps.size() - 1 ? "Finish" : "Next");
+        if (position == currentStep) {
+            holder.cardView.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            holder.backgroundImage.setVisibility(View.GONE);
+            holder.inputContainer.setVisibility(View.VISIBLE);
+            holder.continueButton.setVisibility(View.VISIBLE);
+            holder.continueButton.setText(position == steps.size() - 1 ? "Finish" : "Continue");
+            holder.iconCompleted.setVisibility(View.GONE);
+            holder.editIcon.setVisibility(View.GONE);
+            animateCard(holder.cardView, 1.05f);
+        } else {
+            holder.backgroundImage.setImageResource(stepData.getBackgroundResource());
+            holder.backgroundImage.setVisibility(View.VISIBLE);
+            holder.cardView.getLayoutParams().height = 1000; // Set a standard height for collapsed cards
+            holder.inputContainer.setVisibility(View.GONE);
+            holder.continueButton.setVisibility(View.GONE);
+            animateCard(holder.cardView, 1.0f);
 
-        // Handle "Previous" button click
-        holder.btnPrevious.setOnClickListener(v -> {
-            if (position > 0) {
-                updateActiveStep(position - 1);
-            }
-        });
-
-        // Handle "Next" button click
-        holder.btnNext.setOnClickListener(v -> {
-            if (position < steps.size() - 1) {
-                updateActiveStep(position + 1);
+            if (isStepCompleted(inputsForStep)) {
+                holder.iconCompleted.setVisibility(View.VISIBLE);
             } else {
-                // Handle form submission (last step)
-                JSONObject jsonData = collectInputs();
-                Toast.makeText(v.getContext(), "Form Submitted! JSON: " + jsonData, Toast.LENGTH_SHORT).show();
+                holder.iconCompleted.setVisibility(View.GONE);
+            }
+            holder.editIcon.setVisibility(View.VISIBLE);
+        }
+
+        holder.continueButton.setOnClickListener(v -> {
+            if (isStepCompleted(inputsForStep)) {
+                if (position < steps.size() - 1) {
+                    updateActiveStep(position + 1);
+                } else {
+                    updateActiveStep(-1); // Collapse the last card
+                }
+            } else {
+                Toast.makeText(context, "Please complete all fields before continuing.", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Highlight the current step
-        holder.itemView.setAlpha(position == currentStep ? 1.0f : 0.5f);
-        holder.itemView.setEnabled(position == currentStep);
+        holder.editIcon.setOnClickListener(v -> updateActiveStep(position));
+    }
+
+    private boolean isStepCompleted(Map<Integer, String> inputsForStep) {
+        // Check if the step has any inputs, if none, it's not completed
+        if (inputsForStep.isEmpty()) {
+            return false;
+        }
+
+        // Check if all inputs for the step are filled
+        for (String value : inputsForStep.values()) {
+            if (value == null || value.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void updateActiveStep(int newStep) {
-        if (newStep != currentStep) {
-            Log.d("StepperAdapter", "Updating current step from " + currentStep + " to " + newStep);
-            currentStep = newStep;
-            notifyDataSetChanged(); // Refresh the UI to highlight the active section
-            centerCurrentStep(newStep); // Scroll to the active section
+        int previousStep = currentStep;
+        currentStep = newStep;
+        notifyItemChanged(previousStep);
+        notifyItemChanged(currentStep);
+
+        if (newStep >= 0 && recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+            recyclerView.post(() -> layoutManager.scrollToPositionWithOffset(newStep, 0));
         }
     }
 
-    private void centerCurrentStep(int position) {
-        if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+    private void animateCard(CardView cardView, float scale) {
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(cardView, "scaleX", scale);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(cardView, "scaleY", scale);
+        scaleX.setDuration(300);
+        scaleY.setDuration(300);
+        scaleX.start();
+        scaleY.start();
+    }
 
-            recyclerView.post(() -> {
-                View stepView = layoutManager.findViewByPosition(position);
-                if (stepView != null) {
-                    int[] location = new int[2];
-                    stepView.getLocationOnScreen(location);
-
-                    int recyclerHeight = recyclerView.getHeight();
-                    int stepHeight = stepView.getHeight();
-
-                    int scrollOffset = location[1] - recyclerHeight / 2 + stepHeight / 2;
-                    if (position == getItemCount() - 1) {
-                        // Adjust for last step
-                        int bottomOffset = stepHeight + location[1] - recyclerHeight;
-                        scrollOffset = Math.max(scrollOffset, bottomOffset);
-                    }
-
-                    recyclerView.smoothScrollBy(0, scrollOffset);
-                }
-            });
-        }
+    private void animateButton(View button) {
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(button, "scaleX", 1.2f, 1.0f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(button, "scaleY", 1.2f, 1.0f);
+        scaleX.setDuration(200);
+        scaleY.setDuration(200);
+        scaleX.start();
+        scaleY.start();
     }
 
     @Override
@@ -150,33 +173,22 @@ public class SetupVerticalStepperAdapter extends RecyclerView.Adapter<SetupVerti
         return steps.size();
     }
 
-    private JSONObject collectInputs() {
-        JSONObject json = new JSONObject();
-        try {
-            for (Map.Entry<Integer, Map<Integer, String>> stepEntry : stepInputs.entrySet()) {
-                JSONObject stepData = new JSONObject();
-                for (Map.Entry<Integer, String> inputEntry : stepEntry.getValue().entrySet()) {
-                    stepData.put("input_" + inputEntry.getKey(), inputEntry.getValue());
-                }
-                json.put("step_" + stepEntry.getKey(), stepData);
-            }
-        } catch (Exception e) {
-            Log.e("SetupVerticalStepperAdapter", "Error generating JSON: " + e.getMessage());
-        }
-        return json;
-    }
-
     static class StepperViewHolder extends RecyclerView.ViewHolder {
         TextView stepTitle;
-        LinearLayout inputContainer; // Container for dynamic inputs
-        Button btnPrevious, btnNext;
+        LinearLayout inputContainer;
+        Button continueButton;
+        ImageView iconCompleted, editIcon, backgroundImage;
+        CardView cardView;
 
         public StepperViewHolder(@NonNull View itemView) {
             super(itemView);
             stepTitle = itemView.findViewById(R.id.step_title);
             inputContainer = itemView.findViewById(R.id.input_container);
-            btnPrevious = itemView.findViewById(R.id.btn_previous);
-            btnNext = itemView.findViewById(R.id.btn_next);
+            continueButton = itemView.findViewById(R.id.btn_continue);
+            iconCompleted = itemView.findViewById(R.id.icon_completed);
+            editIcon = itemView.findViewById(R.id.icon_edit);
+            cardView = (CardView) itemView;
+            backgroundImage = itemView.findViewById(R.id.background_image);
         }
     }
 }

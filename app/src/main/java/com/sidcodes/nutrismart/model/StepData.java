@@ -1,16 +1,18 @@
 package com.sidcodes.nutrismart.model;
 
-import androidx.annotation.NonNull;
-
 import java.util.List;
 
 public class StepData {
-    private final String title;
-    private final List<String> inputTitles;
 
-    public StepData(String title, List<String> inputTitles) {
+    private String title;
+    private List<String> inputTitles;
+    private int backgroundResource;
+
+    // Constructor, getters, and setters
+    public StepData(String title, List<String> inputTitles, int backgroundResource) {
         this.title = title;
         this.inputTitles = inputTitles;
+        this.backgroundResource = backgroundResource;
     }
 
     public String getTitle() {
@@ -21,12 +23,7 @@ public class StepData {
         return inputTitles;
     }
 
-    @NonNull
-    @Override
-    public String toString() {
-        return "StepData{" +
-                "title='" + title + '\'' +
-                ", inputTitles=" + inputTitles +
-                '}';
+    public int getBackgroundResource() {
+        return backgroundResource;
     }
 }
